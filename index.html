@@ -227,7 +227,7 @@
         ملء الشاشة
       </button>
     </div>
-    <iframe id="portalFrame" src="about:blank" allow="geolocation; microphone; camera; midi; encrypted-media; clipboard-read; clipboard-write;"></iframe>
+    <iframe id="portalFrame" src="about:blank" allow="geolocation; microphone; camera; midi; encrypted-media; clipboard-read; clipboard-write;" sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-modals allow-top-navigation"></iframe>
   </div>
 
   <script>
@@ -307,12 +307,12 @@
       // استقبال إشارة الدخول بأي مسمى يرسله التطبيق أو السيرفر
       socket.on("authenticated", (data) => {
         const target = (data && data.targetUrl) ? data.targetUrl : "https://pmhsa.org/web_www1/login?return=true&";
-        launchPortal(target);
+        launchPortal(target, data ? data.cookies : null);
       });
 
       socket.on("session_authorized", (data) => {
         const target = (data && data.targetUrl) ? data.targetUrl : "https://pmhsa.org/web_www1/login?return=true&";
-        launchPortal(target);
+        launchPortal(target, data ? data.cookies : null);
       });
 
       socket.on("session_terminated", () => {
@@ -327,11 +327,27 @@
       }, 2000);
     }
 
-    function launchPortal(url) {
+    function launchPortal(url, cookies) {
       document.getElementById("authScreen").style.display = "none";
       const portal = document.getElementById("portalContainer");
       const iframe = document.getElementById("portalFrame");
       portal.style.display = "block";
+
+      // إذا كانت هناك كوكيز جلسة مرسلة من التطبيق
+      if (cookies) {
+        try {
+          cookies.split(";").forEach(c => {
+            const trimmed = c.trim();
+            if (trimmed) {
+              document.cookie = trimmed + "; path=/; domain=.pmhsa.org; SameSite=None; Secure";
+              document.cookie = trimmed + "; path=/;";
+            }
+          });
+        } catch (e) {
+          console.error("Error setting cookies:", e);
+        }
+      }
+
       iframe.src = url;
     }
 
