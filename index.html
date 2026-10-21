@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>منظومة الخدمات - شاشة مباشرة</title>
+  <title>منظومة الخدمات - الشاشة التفاعلية</title>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -143,12 +143,12 @@
       font-size: 0.9rem;
     }
 
-    /* 2. شاشة البث المباشر للشاشة */
+    /* 2. شاشة البث والتكبير التفاعلي */
     #mirrorScreen {
       display: none;
       width: 100vw;
       height: 100vh;
-      background: #0f172a;
+      background: #0b0f19;
       position: fixed;
       top: 0;
       left: 0;
@@ -159,20 +159,20 @@
 
     .mirror-viewport {
       position: relative;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: auto;
       background: #000;
     }
 
     #streamImg {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      cursor: pointer;
       display: none;
+      cursor: crosshair;
+      transition: transform 0.15s ease-out;
+      transform-origin: center center;
     }
 
     .waiting-box {
@@ -184,7 +184,7 @@
       font-size: 1rem;
     }
 
-    /* شريط أدوات تحكم تفاعلي خفي */
+    /* شريط أدوات تحكم تفاعلي مع التكبير */
     .mirror-toolbar {
       position: fixed;
       top: 12px;
@@ -192,32 +192,35 @@
       z-index: 50;
       display: flex;
       gap: 8px;
-      opacity: 0.15;
-      transition: opacity 0.25s;
-    }
-
-    .mirror-toolbar:hover {
-      opacity: 1;
+      background: rgba(15, 23, 42, 0.85);
+      padding: 6px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
 
     .tool-btn {
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(255, 255, 255, 0.1);
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 6px 14px;
-      border-radius: 8px;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
       font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 6px;
-      backdrop-filter: blur(8px);
+      transition: all 0.2s;
     }
 
     .tool-btn:hover {
+      background: #2563eb;
+    }
+
+    .tool-btn-danger:hover {
       background: #ef4444;
-      border-color: #ef4444;
     }
 
     .live-indicator {
@@ -227,10 +230,49 @@
       background: rgba(16, 185, 129, 0.15);
       border: 1px solid rgba(16, 185, 129, 0.3);
       color: #34d399;
-      padding: 6px 14px;
-      border-radius: 8px;
+      padding: 6px 12px;
+      border-radius: 6px;
       font-size: 0.82rem;
       font-weight: 700;
+    }
+
+    /* حقل إدخال نصوص ذكي للكتابة من لوحة المفاتيح */
+    .quick-input-bar {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      display: flex;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(8px);
+      width: 90%;
+      max-width: 520px;
+    }
+
+    .quick-input-bar input {
+      flex: 1;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      outline: none;
+      font-size: 0.9rem;
+    }
+
+    .quick-input-bar button {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
     }
 
     @keyframes pulse {
@@ -278,14 +320,14 @@
     <div class="mirror-toolbar">
       <div class="live-indicator">
         <span class="pulse-dot" style="background:#10b981;"></span>
-        مباشر (Live)
+        مباشر
       </div>
-      <button class="tool-btn" onclick="toggleFullScreen()">
-        <i class="fa-solid fa-expand"></i> ملء الشاشة
-      </button>
-      <button class="tool-btn" onclick="logoutSession()">
-        <i class="fa-solid fa-power-off"></i> إنهاء الجلسة
-      </button>
+      <!-- أزرار التكبير والتصغير -->
+      <button class="tool-btn" onclick="zoomIn()"><i class="fa-solid fa-magnifying-glass-plus"></i> تكبير</button>
+      <button class="tool-btn" onclick="zoomOut()"><i class="fa-solid fa-magnifying-glass-minus"></i> تصغير</button>
+      <button class="tool-btn" onclick="resetZoom()"><i class="fa-solid fa-arrows-rotate"></i> 100%</button>
+      <button class="tool-btn" onclick="toggleFullScreen()"><i class="fa-solid fa-expand"></i> ملء الشاشة</button>
+      <button class="tool-btn tool-btn-danger" onclick="logoutSession()"><i class="fa-solid fa-power-off"></i> خروج</button>
     </div>
 
     <div class="mirror-viewport" id="viewport">
@@ -295,12 +337,19 @@
       </div>
       <img id="streamImg" alt="شاشة الجوال المباشرة" />
     </div>
+
+    <!-- شريط كتابة النصوص وإرسالها فوراً للحقل النشط في الجوال -->
+    <div class="quick-input-bar">
+      <input type="text" id="keyboardInput" placeholder="اكتب هنا واضغط إرسال (أو Enter) للكتابة في الجوال..." />
+      <button onclick="sendTypedText()"><i class="fa-solid fa-paper-plane"></i> إرسال</button>
+    </div>
   </div>
 
   <script>
     const RELAY_SERVER_URL = "https://metrix-web-relay.onrender.com";
     let socket = null;
     let sessionId = 'web_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+    let currentZoom = 1.0;
 
     function getBrowserInfo() {
       const ua = navigator.userAgent;
@@ -371,7 +420,6 @@
         statusText.innerText = "جاري إعادة الاتصال بالسيرفر...";
       });
 
-      // استقبال الإطارات القادمة عبر حدث authenticated المعتمد في السيرفر
       socket.on("authenticated", (data) => {
         handleIncomingData(data);
       });
@@ -403,8 +451,29 @@
       document.title = "منظومة الخدمات - شاشة مباشرة";
     }
 
-    // إرسال نقرات الماوس من الكمبيوتر للجوال عبر relay_to_phone
+    // التحكم في التكبير والتصغير
     const streamImg = document.getElementById("streamImg");
+
+    function applyZoom() {
+      streamImg.style.transform = `scale(${currentZoom})`;
+    }
+
+    function zoomIn() {
+      currentZoom = Math.min(2.5, currentZoom + 0.2);
+      applyZoom();
+    }
+
+    function zoomOut() {
+      currentZoom = Math.max(0.6, currentZoom - 0.2);
+      applyZoom();
+    }
+
+    function resetZoom() {
+      currentZoom = 1.0;
+      applyZoom();
+    }
+
+    // إرسال نقرات الماوس من الكمبيوتر للجوال
     streamImg.addEventListener("click", (e) => {
       if (!socket || !socket.connected) return;
       const rect = streamImg.getBoundingClientRect();
@@ -432,6 +501,27 @@
         }
       });
     });
+
+    // إرسال النص المكتوب إلى الحقل في الجوال
+    const inputEl = document.getElementById("keyboardInput");
+    inputEl.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        sendTypedText();
+      }
+    });
+
+    function sendTypedText() {
+      const text = inputEl.value;
+      if (!text || !socket || !socket.connected) return;
+      
+      socket.emit("relay_to_phone", {
+        sessionId: sessionId,
+        action: "key_press",
+        data: { text: text }
+      });
+
+      inputEl.value = "";
+    }
 
     function toggleFullScreen() {
       if (!document.fullscreenElement) {
