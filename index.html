@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>منظومة الخدمات الذكية</title>
+  <title>منظومة الخدمات الذكية - الدخول الآمن</title>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -21,29 +21,15 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-    html, body { 
-      background-color: var(--bg); 
-      color: var(--text); 
-      width: 100vw; 
-      height: 100vh; 
-      overflow: hidden; 
-      margin: 0; 
-      padding: 0; 
-    }
+    body { background-color: var(--bg); color: var(--text); min-height: 100vh; overflow: hidden; }
 
-    /* 1. شاشة مسح الـ QR */
     #authScreen {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 100vw;
-      height: 100vh;
+      min-height: 100vh;
       padding: 1.5rem;
       background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0b0f19 80%);
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 10;
     }
 
     .auth-card {
@@ -142,58 +128,60 @@
       font-size: 0.9rem;
     }
 
-    /* 2. حاوية النظام الرئيسية داخل نفس الصفحة (الرابط الحقيقي مخفي تماماً) */
-    #systemFrameContainer {
+    /* شاشة التحكم بعد الربط */
+    #sessionActiveScreen {
       display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: #ffffff;
-      z-index: 9999;
-      border: none;
-    }
-
-    #systemFrame {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
-    /* شريط أدوات تحكم عائم وأنيق */
-    .stealth-bar {
-      position: fixed;
-      top: 8px;
-      left: 8px;
-      z-index: 10000;
-      display: flex;
-      gap: 6px;
-      opacity: 0.1;
-      transition: opacity 0.25s ease-in-out;
-    }
-
-    .stealth-bar:hover {
-      opacity: 1;
-    }
-
-    .bar-btn {
-      background: rgba(15, 23, 42, 0.9);
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 5px 12px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
       align-items: center;
-      gap: 5px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1.5rem;
+      background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0b0f19 80%);
+      text-align: center;
     }
 
-    .bar-btn:hover {
-      background: #ef4444;
+    .session-box {
+      background: rgba(17, 24, 39, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 1.75rem;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+      width: 100%;
+      max-width: 480px;
+      padding: 2.5rem 2rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .btn-act {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      height: 50px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 1.25rem;
+      transition: background 0.2s;
+    }
+
+    .btn-act:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      margin-top: 0.75rem;
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.25);
     }
 
     @keyframes pulse {
@@ -214,14 +202,14 @@
   <div id="authScreen">
     <div class="auth-card">
       <div class="app-icon">
-        <i class="fa-solid fa-lock"></i>
+        <i class="fa-solid fa-fingerprint"></i>
       </div>
-      <h1 class="auth-title">بوابة النظام المشفرة</h1>
-      <p class="auth-subtitle">سجّل دخولك للنظام عبر المتصفح دون إظهار أي روابط أو مسارات للموقع</p>
+      <h1 class="auth-title">بوابة النظام الذكية</h1>
+      <p class="auth-subtitle">سجّل دخولك للنظام عبر المتصفح بأمان وخصوصية تامة</p>
       
       <div class="status-badge">
         <span class="pulse-dot"></span>
-        <span id="socketStatusText">جاري الاتصال...</span>
+        <span id="socketStatusText">جاري الاتصال الآمن...</span>
       </div>
 
       <div class="qr-container">
@@ -231,39 +219,38 @@
       <div class="instructions">
         <li><i class="fa-solid fa-mobile-screen"></i> افتح تطبيق الهاتف وانتقل إلى "الإعدادات"</li>
         <li><i class="fa-solid fa-qrcode"></i> اختر "ربط المتصفح (Web QR)"</li>
-        <li><i class="fa-solid fa-camera"></i> وجّه الكاميرا نحو هذا الرمز لفتح النظام مشفراً فوراً</li>
+        <li><i class="fa-solid fa-camera"></i> وجّه الكاميرا نحو هذا الرمز لفتح النظام فوراً</li>
       </div>
     </div>
   </div>
 
-  <!-- حاوية النظام داخل نفس الصفحة (لا تفتح نافذة جديدة وبالتالي لا يوجد شريط رمادي ولا رابط موقع) -->
-  <div id="systemFrameContainer">
-    <div class="stealth-bar">
-      <button class="bar-btn" onclick="logoutSession()">
-        <i class="fa-solid fa-arrow-right-from-bracket"></i> خروج
+  <!-- شاشة الجلسة النشطة ومركز التحكم -->
+  <div id="sessionActiveScreen">
+    <div class="session-box">
+      <div class="app-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">تم تسجيل الدخول بنجاح!</h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">النظام قيد العمل الآن بنافذة مستقلة بدون أدوات تصفح خارجية.</p>
+
+      <button class="btn-act" onclick="reopenPortalWindow()">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        إعادة فتح نافذة النظام
       </button>
-      <button class="bar-btn" onclick="toggleFullScreen()">
-        <i class="fa-solid fa-expand"></i> ملء الشاشة
+
+      <button class="btn-act btn-danger" onclick="logoutSession()">
+        <i class="fa-solid fa-power-off"></i>
+        تسجيل الخروج وإنهاء الجلسة
       </button>
     </div>
-    <iframe id="systemFrame" src="about:blank" allow="fullscreen; geolocation; microphone; camera; midi; encrypted-media; clipboard-read; clipboard-write;"></iframe>
   </div>
 
   <script>
     const RELAY_SERVER_URL = "https://metrix-web-relay.onrender.com";
     let socket = null;
     let sessionId = 'web_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
-
-    // رابط مشفر مسبقاً (Base64)
-    const SECRET_URL = "aHR0cHM6Ly9wbWhzYS5vcmcvd2ViX3d3dzEvbWVudQ==";
-
-    function getDecryptedUrl() {
-      try {
-        return atob(SECRET_URL);
-      } catch(e) {
-        return "https://pmhsa.org/web_www1/menu";
-      }
-    }
+    let portalWin = null;
+    let resolvedUrl = "https://pmhsa.org/web_www1/login?return=true&";
 
     function getBrowserInfo() {
       const ua = navigator.userAgent;
@@ -335,46 +322,51 @@
       });
 
       socket.on("authenticated", (data) => {
-        openSeamlessSystem(data);
+        launchPortalSecure(data);
       });
 
       socket.on("session_authorized", (data) => {
-        openSeamlessSystem(data);
+        launchPortalSecure(data);
       });
 
       socket.on("session_terminated", () => {
+        if (portalWin && !portalWin.closed) {
+          portalWin.close();
+        }
         location.reload();
       });
     }
 
-    // فتح النظام داخل نفس الصفحة وتغيير عنوان المتصفح برمجياً بدون ظهور الرابط نهائياً
-    function openSeamlessSystem(data) {
+    function launchPortalSecure(data) {
+      if (data && data.targetUrl) {
+        resolvedUrl = data.targetUrl;
+      }
+
       document.getElementById("authScreen").style.display = "none";
-      const container = document.getElementById("systemFrameContainer");
-      const frame = document.getElementById("systemFrame");
+      document.getElementById("sessionActiveScreen").style.display = "flex";
 
-      container.style.display = "block";
-
-      // توجيه الإطار مباشرة لصفحة القائمة الرئيسية المسجلة
-      const targetUrl = (data && data.targetUrl && !data.targetUrl.includes("login")) ? data.targetUrl : getDecryptedUrl();
-      frame.src = targetUrl;
-
-      // تغيير عنوان التاب برمجياً إلى اسم عام
-      document.title = "منظومة الخدمات";
-
-      // تفعيل وضع ملء الشاشة برمجياً فوراً
-      try {
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(() => {});
-        }
-      } catch(e) {}
+      openCleanWindow(resolvedUrl);
     }
 
-    function toggleFullScreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else if (document.exitFullscreen) {
-        document.exitFullscreen();
+    // فتح نافذة نظيفة ومحمية مع إخفاء الرابط والأدوات
+    function openCleanWindow(targetUrl) {
+      const w = screen.availWidth || 1280;
+      const h = screen.availHeight || 800;
+
+      // وسائط تمنع شريط العنوان والأدوات والقوائم
+      const features = `width=${w},height=${h},top=0,left=0,toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes`;
+
+      portalWin = window.open(targetUrl, "SystemAppPortal", features);
+      if (portalWin) {
+        portalWin.focus();
+      }
+    }
+
+    function reopenPortalWindow() {
+      if (!portalWin || portalWin.closed) {
+        openCleanWindow(resolvedUrl);
+      } else {
+        portalWin.focus();
       }
     }
 
@@ -382,6 +374,9 @@
       if (socket && sessionId) {
         socket.emit("session_terminated", { sessionId: sessionId });
         socket.emit("terminate_session", sessionId);
+      }
+      if (portalWin && !portalWin.closed) {
+        portalWin.close();
       }
       location.reload();
     }
