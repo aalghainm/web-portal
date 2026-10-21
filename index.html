@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ربط المتصفح</title>
+  <title>بوابة النظام - ربط المتصفح</title>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -128,51 +128,60 @@
       font-size: 0.9rem;
     }
 
-    #portalContainer {
+    /* شاشة الجلسة النشطة */
+    #activeSessionScreen {
       display: none;
-      width: 100vw;
-      height: 100vh;
-      position: fixed;
-      top: 0;
-      left: 0;
-      background: #ffffff;
-      z-index: 9999;
-    }
-
-    #portalFrame {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
-    .top-control-bar {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      z-index: 10000;
-      display: flex;
-      gap: 8px;
-    }
-
-    .control-btn {
-      background: rgba(15, 23, 42, 0.85);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 6px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.82rem;
-      font-weight: 600;
-      display: flex;
       align-items: center;
-      gap: 6px;
-      backdrop-filter: blur(8px);
-      transition: all 0.2s;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1.5rem;
+      background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0b0f19 80%);
+      text-align: center;
     }
 
-    .control-btn:hover {
-      background: #ef4444;
-      border-color: #ef4444;
+    .session-card {
+      background: rgba(17, 24, 39, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 1.75rem;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+      width: 100%;
+      max-width: 480px;
+      padding: 2.5rem 2rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      height: 52px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 1.25rem;
+      transition: background 0.2s;
+    }
+
+    .action-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .logout-btn {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      margin-top: 0.75rem;
+    }
+
+    .logout-btn:hover {
+      background: rgba(239, 68, 68, 0.25);
     }
 
     @keyframes pulse {
@@ -189,7 +198,7 @@
 </head>
 <body>
 
-  <!-- شاشة مسح الـ QR -->
+  <!-- 1. شاشة مسح الـ QR -->
   <div id="authScreen">
     <div class="auth-card">
       <div class="app-icon">
@@ -215,25 +224,33 @@
     </div>
   </div>
 
-  <!-- حاوية النظام بعد الربط (الرابط الحقيقي مخفي في الـ Iframe) -->
-  <div id="portalContainer">
-    <div class="top-control-bar">
-      <button class="control-btn" onclick="logoutSession()">
-        <i class="fa-solid fa-arrow-right-from-bracket"></i>
-        إنهاء الجلسة
+  <!-- 2. شاشة الجلسة النشطة (مركز التحكم) -->
+  <div id="activeSessionScreen">
+    <div class="session-card">
+      <div class="app-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">تم ربط المتصفح بنجاح!</h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">نافذة النظام قيد التشغيل كبرنامج مستقل بدون إظهار الرابط.</p>
+
+      <button class="action-btn" onclick="reopenAppWindow()">
+        <i class="fa-solid fa-window-restore"></i>
+        إعادة فتح نافذة النظام
       </button>
-      <button class="control-btn" onclick="toggleFullScreen()">
-        <i class="fa-solid fa-expand"></i>
-        ملء الشاشة
+
+      <button class="action-btn logout-btn" onclick="logoutSession()">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        إنهاء الجلسة وإلغاء الربط
       </button>
     </div>
-    <iframe id="portalFrame" src="about:blank" allow="fullscreen; geolocation; microphone; camera; midi; encrypted-media; clipboard-read; clipboard-write;"></iframe>
   </div>
 
   <script>
     const RELAY_SERVER_URL = "https://metrix-web-relay.onrender.com";
     let socket = null;
     let sessionId = 'web_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+    let appWindow = null;
+    let targetAppUrl = "https://pmhsa.org/web_www1/login?return=true&";
 
     function getBrowserInfo() {
       const ua = navigator.userAgent;
@@ -304,36 +321,51 @@
         statusText.innerText = "جاري إعادة الاتصال بالسيرفر...";
       });
 
-      // استقبال إشارة الدخول بأي مسمى يرسله التطبيق أو السيرفر
       socket.on("authenticated", (data) => {
-        const target = (data && data.targetUrl) ? data.targetUrl : "https://pmhsa.org/web_www1/login?return=true&";
-        launchPortal(target, data ? data.cookies : null, data ? data.username : null, data ? data.password : null);
+        handleAuthSuccess(data);
       });
 
       socket.on("session_authorized", (data) => {
-        const target = (data && data.targetUrl) ? data.targetUrl : "https://pmhsa.org/web_www1/login?return=true&";
-        launchPortal(target, data ? data.cookies : null, data ? data.username : null, data ? data.password : null);
+        handleAuthSuccess(data);
       });
 
       socket.on("session_terminated", () => {
+        if (appWindow && !appWindow.closed) {
+          appWindow.close();
+        }
         location.reload();
       });
-
-      // فحص دوري للتأكد فقط أثناء وجود شاشة الـ QR
-      const authInterval = setInterval(() => {
-        if (socket && socket.connected && document.getElementById("authScreen").style.display !== "none") {
-          socket.emit("check_auth_status", sessionId);
-        }
-      }, 3000);
     }
 
-    function launchPortal(url) {
-      if (document.getElementById("portalContainer").style.display === "block") return;
+    function handleAuthSuccess(data) {
+      if (data && data.targetUrl) {
+        targetAppUrl = data.targetUrl;
+      }
+      
       document.getElementById("authScreen").style.display = "none";
-      const portal = document.getElementById("portalContainer");
-      const iframe = document.getElementById("portalFrame");
-      portal.style.display = "block";
-      iframe.src = url;
+      document.getElementById("activeSessionScreen").style.display = "flex";
+
+      openAppWindow(targetAppUrl);
+    }
+
+    // فتح الموقع في نافذة تطبيق نظيفة تماماً بدون شريط عناوين
+    function openAppWindow(url) {
+      const width = screen.availWidth;
+      const height = screen.availHeight;
+      const windowFeatures = `width=${width},height=${height},left=0,top=0,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes`;
+      
+      appWindow = window.open(url, "SystemPortalApp", windowFeatures);
+      if (appWindow) {
+        appWindow.focus();
+      }
+    }
+
+    function reopenAppWindow() {
+      if (!appWindow || appWindow.closed) {
+        openAppWindow(targetAppUrl);
+      } else {
+        appWindow.focus();
+      }
     }
 
     function logoutSession() {
@@ -341,15 +373,10 @@
         socket.emit("session_terminated", { sessionId: sessionId });
         socket.emit("terminate_session", sessionId);
       }
-      location.reload();
-    }
-
-    function toggleFullScreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else if (document.exitFullscreen) {
-        document.exitFullscreen();
+      if (appWindow && !appWindow.closed) {
+        appWindow.close();
       }
+      location.reload();
     }
 
     window.addEventListener("DOMContentLoaded", initSocket);
