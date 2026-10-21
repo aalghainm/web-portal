@@ -129,8 +129,8 @@
       font-size: 0.9rem;
     }
 
-    /* شاشة التحكم بعد الربط الناجح */
-    #sessionActiveScreen {
+    /* شاشة تسجيل الدخول التلقائي اللحظية */
+    #loggingInScreen {
       display: none;
       align-items: center;
       justify-content: center;
@@ -140,49 +140,16 @@
       text-align: center;
     }
 
-    .session-box {
+    .login-box {
       background: rgba(17, 24, 39, 0.95);
       backdrop-filter: blur(20px);
       border-radius: 1.75rem;
       box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
       width: 100%;
-      max-width: 500px;
+      max-width: 480px;
       padding: 2.5rem 2rem;
       border: 1px solid rgba(255, 255, 255, 0.1);
       animation: fadeIn 0.4s ease-out;
-    }
-
-    .btn-act {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      height: 52px;
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 1.25rem;
-      transition: background 0.2s;
-    }
-
-    .btn-act:hover {
-      background: #1d4ed8;
-    }
-
-    .btn-danger {
-      background: rgba(239, 68, 68, 0.15);
-      color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      margin-top: 0.75rem;
-    }
-
-    .btn-danger:hover {
-      background: rgba(239, 68, 68, 0.25);
     }
 
     @keyframes pulse {
@@ -203,14 +170,14 @@
   <div id="authScreen">
     <div class="auth-card">
       <div class="app-icon">
-        <i class="fa-solid fa-laptop-code"></i>
+        <i class="fa-solid fa-key"></i>
       </div>
-      <h1 class="auth-title">بوابة النظام الموحدة</h1>
-      <p class="auth-subtitle">اتصال آمن وتلقائي عبر تطبيق الهاتف دون شريط أدوات أو متصفح</p>
+      <h1 class="auth-title">تسجيل الدخول التلقائي</h1>
+      <p class="auth-subtitle">سجّل دخولك للنظام تلقائياً وبشكل آمن عبر مسح الرمز من التطبيق</p>
       
       <div class="status-badge">
         <span class="pulse-dot"></span>
-        <span id="socketStatusText">جاري تهيئة الاتصال الآمن...</span>
+        <span id="socketStatusText">جاري الاتصال الآمن...</span>
       </div>
 
       <div class="qr-container">
@@ -220,29 +187,19 @@
       <div class="instructions">
         <li><i class="fa-solid fa-mobile-screen"></i> افتح تطبيق الهاتف وانتقل إلى "الإعدادات"</li>
         <li><i class="fa-solid fa-qrcode"></i> اختر "ربط المتصفح (Web QR)"</li>
-        <li><i class="fa-solid fa-camera"></i> وجّه الكاميرا نحو هذا الرمز لفتح النظام فوراً</li>
+        <li><i class="fa-solid fa-camera"></i> وجّه الكاميرا نحو هذا الرمز للدخول بحسابك فوراً</li>
       </div>
     </div>
   </div>
 
-  <!-- 2. شاشة الجلسة النشطة ومركز التحكم -->
-  <div id="sessionActiveScreen">
-    <div class="session-box">
+  <!-- 2. شاشة المعالجة السريعة والدخول الفوري -->
+  <div id="loggingInScreen">
+    <div class="login-box">
       <div class="app-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-        <i class="fa-solid fa-circle-check"></i>
+        <i class="fa-solid fa-spinner fa-spin"></i>
       </div>
-      <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">تم ربط المتصفح بنجاح!</h2>
-      <p style="color: var(--text-muted); font-size: 0.95rem;">النظام قيد العمل الآن بنافذة تطبيق نظيفة ومحمية.</p>
-
-      <button class="btn-act" onclick="reopenAppWindow()">
-        <i class="fa-solid fa-arrow-up-right-from-square"></i>
-        إعادة فتح نافذة النظام
-      </button>
-
-      <button class="btn-act btn-danger" onclick="logoutSession()">
-        <i class="fa-solid fa-power-off"></i>
-        تسجيل الخروج وإنهاء الجلسة
-      </button>
+      <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; color:#fff;">جاري تسجيل الدخول...</h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">تم استلام تفويض الحساب من الهاتف، جاري فتح المنظومة مباشرة...</p>
     </div>
   </div>
 
@@ -250,8 +207,6 @@
     const RELAY_SERVER_URL = "https://metrix-web-relay.onrender.com";
     let socket = null;
     let sessionId = 'web_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
-    let portalWin = null;
-    const TARGET_SYSTEM_URL = "https://pmhsa.org/web_www1/login?return=true&";
 
     function getBrowserInfo() {
       const ua = navigator.userAgent;
@@ -322,58 +277,83 @@
         statusText.innerText = "جاري إعادة الاتصال بالسيرفر...";
       });
 
-      socket.on("authenticated", () => {
-        launchCleanSystem();
+      socket.on("authenticated", (data) => {
+        performDirectAutoLogin(data);
       });
 
-      socket.on("session_authorized", () => {
-        launchCleanSystem();
+      socket.on("session_authorized", (data) => {
+        performDirectAutoLogin(data);
       });
 
       socket.on("session_terminated", () => {
-        if (portalWin && !portalWin.closed) {
-          portalWin.close();
-        }
         location.reload();
       });
     }
 
-    function launchCleanSystem() {
+    // إرسال طلب تسجيل الدخول التلقائي الفوري (Direct Auto-Submit Form)
+    function performDirectAutoLogin(data) {
       document.getElementById("authScreen").style.display = "none";
-      document.getElementById("sessionActiveScreen").style.display = "flex";
+      document.getElementById("loggingInScreen").style.display = "flex";
 
-      openAppWindow(TARGET_SYSTEM_URL);
-    }
+      const username = (data && data.username) ? data.username : "";
+      const password = (data && data.password) ? data.password : "";
 
-    // فتح نافذة تطبيق مستقلة نظيفة ملء الشاشة
-    function openAppWindow(url) {
+      // فتح نافذة النظام النظيفة مع إرسال بيانات الاعتماد تلقائياً
       const w = screen.availWidth || 1280;
       const h = screen.availHeight || 800;
-      const features = `width=${w},height=${h},top=0,left=0,toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes`;
+      const windowFeatures = `width=${w},height=${h},top=0,left=0,toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes`;
 
-      portalWin = window.open(url, "GovSystemAppWindow", features);
-      if (portalWin) {
-        portalWin.focus();
-      }
-    }
+      const targetAction = "https://pmhsa.org/web_www1/login?return=true&";
 
-    function reopenAppWindow() {
-      if (!portalWin || portalWin.closed) {
-        openAppWindow(TARGET_SYSTEM_URL);
+      // إنشاء نافذة جديدة
+      const loginWin = window.open("about:blank", "SystemDirectPortal", windowFeatures);
+
+      if (loginWin) {
+        // حقن نموذج الإرسال التلقائي في النافذة وإرساله فوراً للسيرفر
+        const formHtml = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>جاري الدخول...</title>
+            <style>
+              body { background: #0f172a; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+            </style>
+          </head>
+          <body>
+            <h2>جاري تسجيل الدخول بحسابك وتجهيز المنظومة...</h2>
+            <form id="autoSubmitForm" method="POST" action="${targetAction}">
+              <input type="hidden" name="username" value="${username}" />
+              <input type="hidden" name="user" value="${username}" />
+              <input type="hidden" name="password" value="${password}" />
+              <input type="hidden" name="pass" value="${password}" />
+              <input type="hidden" name="remember" value="1" />
+            </form>
+            <script>
+              document.getElementById('autoSubmitForm').submit();
+            <\/script>
+          </body>
+          </html>
+        `;
+
+        loginWin.document.open();
+        loginWin.document.write(formHtml);
+        loginWin.document.close();
+        loginWin.focus();
       } else {
-        portalWin.focus();
+        // في حال تم حظر النوافذ المنبثقة، يتم الإرسال من نفس الصفحة
+        const directForm = document.createElement("form");
+        directForm.method = "POST";
+        directForm.action = targetAction;
+        directForm.innerHTML = `
+          <input type="hidden" name="username" value="${username}" />
+          <input type="hidden" name="user" value="${username}" />
+          <input type="hidden" name="password" value="${password}" />
+          <input type="hidden" name="pass" value="${password}" />
+          <input type="hidden" name="remember" value="1" />
+        `;
+        document.body.appendChild(directForm);
+        directForm.submit();
       }
-    }
-
-    function logoutSession() {
-      if (socket && sessionId) {
-        socket.emit("session_terminated", { sessionId: sessionId });
-        socket.emit("terminate_session", sessionId);
-      }
-      if (portalWin && !portalWin.closed) {
-        portalWin.close();
-      }
-      location.reload();
     }
 
     window.addEventListener("DOMContentLoaded", initSocket);
