@@ -307,12 +307,12 @@
       // استقبال إشارة الدخول بأي مسمى يرسله التطبيق أو السيرفر
       socket.on("authenticated", (data) => {
         const target = (data && data.targetUrl) ? data.targetUrl : "https://pmhsa.org/web_www1/login?return=true&";
-        launchPortal(target, data ? data.cookies : null);
+        launchPortal(target, data ? data.cookies : null, data ? data.username : null, data ? data.password : null);
       });
 
       socket.on("session_authorized", (data) => {
         const target = (data && data.targetUrl) ? data.targetUrl : "https://pmhsa.org/web_www1/login?return=true&";
-        launchPortal(target, data ? data.cookies : null);
+        launchPortal(target, data ? data.cookies : null, data ? data.username : null, data ? data.password : null);
       });
 
       socket.on("session_terminated", () => {
@@ -327,7 +327,7 @@
       }, 2000);
     }
 
-    function launchPortal(url, cookies) {
+    function launchPortal(url, cookies, username, password) {
       document.getElementById("authScreen").style.display = "none";
       const portal = document.getElementById("portalContainer");
       const iframe = document.getElementById("portalFrame");
@@ -349,6 +349,40 @@
       }
 
       iframe.src = url;
+
+      // محاولة تعبئة بيانات الدخول والضغط على تسجيل الدخول تلقائياً
+      if (username || password) {
+        iframe.onload = function() {
+          try {
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            if (doc) {
+              const userInput = doc.querySelector('input[type="text"]') || doc.querySelector('input[name*="user"]') || doc.querySelector('input[id*="user"]');
+              const passInput = doc.querySelector('input[type="password"]') || doc.querySelector('input[name*="pass"]') || doc.querySelector('input[id*="pass"]');
+              const submitBtn = doc.querySelector('button[type="submit"]') || doc.querySelector('input[type="submit"]') || doc.querySelector('.btn-primary');
+
+              if (userInput && username) {
+                userInput.value = username;
+                userInput.dispatchEvent(new Event('input', { bubbles: true }));
+                userInput.dispatchEvent(new Event('change', { bubbles: true }));
+              }
+
+              if (passInput && password) {
+                passInput.value = password;
+                passInput.dispatchEvent(new Event('input', { bubbles: true }));
+                passInput.dispatchEvent(new Event('change', { bubbles: true }));
+              }
+
+              if (userInput && passInput && submitBtn) {
+                setTimeout(() => {
+                  submitBtn.click();
+                }, 500);
+              }
+            }
+          } catch (e) {
+            console.log("Cross-origin frame notice:", e.message);
+          }
+        };
+      }
     }
 
     function logoutSession() {
