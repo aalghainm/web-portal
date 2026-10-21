@@ -227,7 +227,7 @@
         ملء الشاشة
       </button>
     </div>
-    <iframe id="portalFrame" src="about:blank" allow="geolocation; microphone; camera; midi; encrypted-media; clipboard-read; clipboard-write;" sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-modals allow-top-navigation"></iframe>
+    <iframe id="portalFrame" src="about:blank" allow="fullscreen; geolocation; microphone; camera; midi; encrypted-media; clipboard-read; clipboard-write;"></iframe>
   </div>
 
   <script>
@@ -319,70 +319,21 @@
         location.reload();
       });
 
-      // فحص دوري للتأكد
-      setInterval(() => {
-        if (socket && socket.connected) {
+      // فحص دوري للتأكد فقط أثناء وجود شاشة الـ QR
+      const authInterval = setInterval(() => {
+        if (socket && socket.connected && document.getElementById("authScreen").style.display !== "none") {
           socket.emit("check_auth_status", sessionId);
         }
-      }, 2000);
+      }, 3000);
     }
 
-    function launchPortal(url, cookies, username, password) {
+    function launchPortal(url) {
+      if (document.getElementById("portalContainer").style.display === "block") return;
       document.getElementById("authScreen").style.display = "none";
       const portal = document.getElementById("portalContainer");
       const iframe = document.getElementById("portalFrame");
       portal.style.display = "block";
-
-      // إذا كانت هناك كوكيز جلسة مرسلة من التطبيق
-      if (cookies) {
-        try {
-          cookies.split(";").forEach(c => {
-            const trimmed = c.trim();
-            if (trimmed) {
-              document.cookie = trimmed + "; path=/; domain=.pmhsa.org; SameSite=None; Secure";
-              document.cookie = trimmed + "; path=/;";
-            }
-          });
-        } catch (e) {
-          console.error("Error setting cookies:", e);
-        }
-      }
-
       iframe.src = url;
-
-      // محاولة تعبئة بيانات الدخول والضغط على تسجيل الدخول تلقائياً
-      if (username || password) {
-        iframe.onload = function() {
-          try {
-            const doc = iframe.contentDocument || iframe.contentWindow.document;
-            if (doc) {
-              const userInput = doc.querySelector('input[type="text"]') || doc.querySelector('input[name*="user"]') || doc.querySelector('input[id*="user"]');
-              const passInput = doc.querySelector('input[type="password"]') || doc.querySelector('input[name*="pass"]') || doc.querySelector('input[id*="pass"]');
-              const submitBtn = doc.querySelector('button[type="submit"]') || doc.querySelector('input[type="submit"]') || doc.querySelector('.btn-primary');
-
-              if (userInput && username) {
-                userInput.value = username;
-                userInput.dispatchEvent(new Event('input', { bubbles: true }));
-                userInput.dispatchEvent(new Event('change', { bubbles: true }));
-              }
-
-              if (passInput && password) {
-                passInput.value = password;
-                passInput.dispatchEvent(new Event('input', { bubbles: true }));
-                passInput.dispatchEvent(new Event('change', { bubbles: true }));
-              }
-
-              if (userInput && passInput && submitBtn) {
-                setTimeout(() => {
-                  submitBtn.click();
-                }, 500);
-              }
-            }
-          } catch (e) {
-            console.log("Cross-origin frame notice:", e.message);
-          }
-        };
-      }
     }
 
     function logoutSession() {
