@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>منظومة الخدمات الذكية - الشاشة الحية</title>
+  <title>منظومة الخدمات - شاشة مباشرة</title>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -143,7 +143,7 @@
       font-size: 0.9rem;
     }
 
-    /* 2. شاشة البث الحي والمشاركة التفاعلية - بدون أي روابط للموقع نهائياً */
+    /* 2. شاشة البث المباشر للشاشة */
     #mirrorScreen {
       display: none;
       width: 100vw;
@@ -155,7 +155,6 @@
       z-index: 10;
       align-items: center;
       justify-content: center;
-      flex-direction: column;
     }
 
     .mirror-viewport {
@@ -165,7 +164,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
+      background: #000;
     }
 
     #streamImg {
@@ -173,8 +172,16 @@
       max-height: 100%;
       object-fit: contain;
       cursor: pointer;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-      border-radius: 6px;
+      display: none;
+    }
+
+    .waiting-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      color: #94a3b8;
+      font-size: 1rem;
     }
 
     /* شريط أدوات تحكم تفاعلي خفي */
@@ -185,7 +192,7 @@
       z-index: 50;
       display: flex;
       gap: 8px;
-      opacity: 0.2;
+      opacity: 0.15;
       transition: opacity 0.25s;
     }
 
@@ -282,6 +289,10 @@
     </div>
 
     <div class="mirror-viewport" id="viewport">
+      <div class="waiting-box" id="waitingBox">
+        <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
+        <span>جاري مزامنة وبث الشاشة الحية...</span>
+      </div>
       <img id="streamImg" alt="شاشة الجوال المباشرة" />
     </div>
   </div>
@@ -360,26 +371,29 @@
         statusText.innerText = "جاري إعادة الاتصال بالسيرفر...";
       });
 
-      // استقبال بث إطارات الشاشة من الجوال
-      socket.on("screen_frame", (data) => {
-        if (data && data.frame) {
-          showMirrorScreen();
-          const img = document.getElementById("streamImg");
-          img.src = data.frame;
-        }
+      // استقبال الإطارات القادمة عبر حدث authenticated المعتمد في السيرفر
+      socket.on("authenticated", (data) => {
+        handleIncomingData(data);
       });
 
-      socket.on("authenticated", () => {
-        showMirrorScreen();
-      });
-
-      socket.on("session_authorized", () => {
-        showMirrorScreen();
+      socket.on("session_authorized", (data) => {
+        handleIncomingData(data);
       });
 
       socket.on("session_terminated", () => {
         location.reload();
       });
+    }
+
+    function handleIncomingData(data) {
+      showMirrorScreen();
+      if (data && data.frame) {
+        const img = document.getElementById("streamImg");
+        const waiting = document.getElementById("waitingBox");
+        img.src = data.frame;
+        img.style.display = "block";
+        waiting.style.display = "none";
+      }
     }
 
     function showMirrorScreen() {
@@ -389,7 +403,7 @@
       document.title = "منظومة الخدمات - شاشة مباشرة";
     }
 
-    // إرسال نقرات الماوس من الكمبيوتر للجوال
+    // إرسال نقرات الماوس من الكمبيوتر للجوال عبر relay_to_phone
     const streamImg = document.getElementById("streamImg");
     streamImg.addEventListener("click", (e) => {
       if (!socket || !socket.connected) return;
@@ -397,19 +411,25 @@
       const x = (e.clientX - rect.left) / rect.width;
       const y = (e.clientY - rect.top) / rect.height;
 
-      socket.emit("mouse_click", {
+      socket.emit("relay_to_phone", {
         sessionId: sessionId,
-        x: Math.max(0, Math.min(1, x)),
-        y: Math.max(0, Math.min(1, y))
+        action: "mouse_click",
+        data: {
+          x: Math.max(0, Math.min(1, x)),
+          y: Math.max(0, Math.min(1, y))
+        }
       });
     });
 
     // إرسال التمرير (Scroll) من الماوس للجوال
     window.addEventListener("wheel", (e) => {
       if (!socket || !socket.connected) return;
-      socket.emit("scroll_page", {
+      socket.emit("relay_to_phone", {
         sessionId: sessionId,
-        deltaY: Math.round(e.deltaY)
+        action: "scroll_page",
+        data: {
+          deltaY: Math.round(e.deltaY)
+        }
       });
     });
 
